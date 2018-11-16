@@ -13,4 +13,11 @@ public class HomeController
     {
         return "hello xiao wei";
     }
+
+    @ResponseBody
+    @RequestMapping(value = "/hello")
+    public String hello()
+    {
+        return "hello li xiao wei";
+    }
 }
