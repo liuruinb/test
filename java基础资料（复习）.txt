@@ -1,0 +1,47 @@
+IOC容器概述
+1、Ioc控制反转是spring容器的内核，AOP、声明式事务等功能在此功能开花结果
+它涉及代码耦合、设计模式、代码优化等。
+IOC的类型
+构造函数注入、属性注入(set,gei方法)、接口注入。
+2、通过容器完成依赖关系的注入，通过XML的配置方式进行属性注入（已过时，略过）
+3、反射机制
+有几个重要的反射类，分别是ClassLoader、Class、Constructor和Method，通过这些反射类就可以间接的调用目标Class的各项技能了。
+类装载器ClassLoader
+1.类装载器工作机制，类装载器就是寻找类的字节码文件并构造出类在JVM内部表示的对象组件。
+   1.1装载：查找和导入Class文件
+   1.2链接：执行效验、准备和解析步骤，其中解析步骤如下；
+      1.2.1效验：检查载入Class文件数据的正确性
+      1.2.2准备：给类的静态变量分配存储空间
+      1.2.3解析：将符号引用转成直接引用
+   1.3初始化：对类的静态变量、静态代码块执行初始化工作
+类装载的工作由ClassLoader及其子类负责，JVM在运行时产生三个ClassLoader：   
+   根加载器（爷爷）
+      负责装载JRE的核心类库
+   ExtClassLoader（扩展类加载器）（儿子）
+      负责装载JRE扩展目录ext中的JAR类包
+   AppClassLoader（系统类装载器）（孙子）
+      负责装载Classpath路径下的类包
+默认的情况下使用AppClassLoader装载应用程序的类
+JVM装载类时使用“全盘负责委托机制”“全盘负责”是指当一个ClassLoader装载一个类时，除非显示地使用另一个ClassLoader，
+该类所依赖及引用的类也由这个ClassLoader载入；“委托机制”是指先委托父装载器寻找目标类，只有在找不到的情况下才从自己的类路径
+中查找并装载目标类。这一点是从安全考虑的，试想如果有人编写了一个恶意的基础类并装载到JVM将会引起多么可怕的后果。
+java.lang.NoSuchMethodError:代码中用到了com.3x版本中的类，而JVM恰巧从com.2x版本中加载此类，并且此类并不存在。
+4、资源访问利器Resource
+Spring的Resource接口及其实现类可以在脱离Spring框架的情况下使用。
+FileSystemResource以文件系统的绝对路径的方式进行访问
+ClassPathResource以类路径的方式进行访问
+ServletContextResource以相对于Web应用根目录的方式进行访问
+对于远程服务器可以使用UrlResource进行访问
+以上可以使用EncodedResource对资源进行编码
+classpath:从类路径中加载资源
+file: http: ftp: 都是使用UrlResource加载资源
+以上两点还支持Ant风格
+5、BeanFactory（Ioc容器）和ApplicationContext（应用上下文）
+ApplicationContext建立在BeanFactory基础之上
+5.1BeanFactory是Spring框架的基础设施，面向Spring本身。
+ApplicationContext是面上使用Spring框架的开发者。几乎我们都是使用ApplicationContext
+JavaBean是要满足一定规范的，如必须提供一个默认不带参数的构造函数、不依赖某一特定的容器等。
+BeanFatory主要从Ioc容器中获取Bean，初始化动作发生在第一次调用时。对于单实例的Bean来说，BeanFactory会缓存Bean实例，所以第二次使用getBean时将直接从Ioc容器的缓存中获取Bean。
+Spring在DefaultSingletonBeanRegistry类中提供了一个用于缓存单实例Bean的缓存器，它是使用一个用HashMap实现的缓存器。
+5.2ApplicationContext加载配置文件，在初始化应用上下文时就实例化所有的单实例的Bean，spring3.0支持基于注解的配置方式@Configtion
+5.3WebAoolicationContext专门为Web应用准备的，他允许从相对于web根目录的路劲中装载配置文件完成初始化工作,以便Web应用环境可以访问Spring上下文，还为Bean提供了三个新的作用域，request、session和globalsession。 
