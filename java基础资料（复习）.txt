@@ -1,10 +1,10 @@
 IOC容器概述
-1、Ioc控制反转是spring容器的内核，AOP、声明式事务等功能在此功能开花结果
+1、   Ioc控制反转是spring容器的内核，AOP、声明式事务等功能在此功能开花结果
 它涉及代码耦合、设计模式、代码优化等。
 IOC的类型
 构造函数注入、属性注入(set,gei方法)、接口注入。
-2、通过容器完成依赖关系的注入，通过XML的配置方式进行属性注入（已过时，略过）
-3、反射机制
+2、   通过容器完成依赖关系的注入，通过XML的配置方式进行属性注入（已过时，略过）
+3、   反射机制
 有几个重要的反射类，分别是ClassLoader、Class、Constructor和Method，通过这些反射类就可以间接的调用目标Class的各项技能了。
 类装载器ClassLoader
 1.类装载器工作机制，类装载器就是寻找类的字节码文件并构造出类在JVM内部表示的对象组件。
@@ -26,7 +26,7 @@ JVM装载类时使用“全盘负责委托机制”“全盘负责”是指当一个ClassLoader装载一个类时
 该类所依赖及引用的类也由这个ClassLoader载入；“委托机制”是指先委托父装载器寻找目标类，只有在找不到的情况下才从自己的类路径
 中查找并装载目标类。这一点是从安全考虑的，试想如果有人编写了一个恶意的基础类并装载到JVM将会引起多么可怕的后果。
 java.lang.NoSuchMethodError:代码中用到了com.3x版本中的类，而JVM恰巧从com.2x版本中加载此类，并且此类并不存在。
-4、资源访问利器Resource
+4、   资源访问利器Resource
 Spring的Resource接口及其实现类可以在脱离Spring框架的情况下使用。
 FileSystemResource以文件系统的绝对路径的方式进行访问
 ClassPathResource以类路径的方式进行访问
@@ -36,13 +36,52 @@ ServletContextResource以相对于Web应用根目录的方式进行访问
 classpath:从类路径中加载资源
 file: http: ftp: 都是使用UrlResource加载资源
 以上两点还支持Ant风格
-5、BeanFactory（Ioc容器）和ApplicationContext（应用上下文）
+5、   BeanFactory（Ioc容器）和ApplicationContext（应用上下文）
 ApplicationContext建立在BeanFactory基础之上
-5.1BeanFactory是Spring框架的基础设施，面向Spring本身。
+5.1   BeanFactory是Spring框架的基础设施，面向Spring本身。它的职责包括：实例化、定位、配置应用程序中的对象及建立这些对象间的依赖
 ApplicationContext是面上使用Spring框架的开发者。几乎我们都是使用ApplicationContext
 JavaBean是要满足一定规范的，如必须提供一个默认不带参数的构造函数、不依赖某一特定的容器等。
 BeanFatory主要从Ioc容器中获取Bean，初始化动作发生在第一次调用时。对于单实例的Bean来说，BeanFactory会缓存Bean实例，所以第二次使用getBean时将直接从Ioc容器的缓存中获取Bean。
 Spring在DefaultSingletonBeanRegistry类中提供了一个用于缓存单实例Bean的缓存器，它是使用一个用HashMap实现的缓存器。
-5.2ApplicationContext加载配置文件，在初始化应用上下文时就实例化所有的单实例的Bean，spring3.0支持基于注解的配置方式@Configtion
-5.3WebAoolicationContext专门为Web应用准备的，他允许从相对于web根目录的路劲中装载配置文件完成初始化工作,以便Web应用环境可以访问Spring上下文，还为Bean提供了三个新的作用域，request、session和globalsession。 
+5.2   ApplicationContext加载配置文件，在初始化应用上下文时就实例化所有的单实例的Bean，spring3.0支持基于注解的配置方式@Configtion，在非WEB应用的环境下Bean只有singleton域和prototype域
+5.3   WebAoolicationContext专门为Web应用准备的，他允许从相对于web根目录的路劲中装载配置文件完成初始化工作,以便Web应用环境可以访问Spring上下文，还为Bean提供了三个新的作用域，request、session和globalsession。
+5.3.1   WebApplicationContext初始化 需要servletContext实例，也就是说它必须在拥有Web容器的前提下才能完成启动的工作
+singleton 只有一个实例，也即是单例模式 
+prototype 访问一次创建一个实例，相当于new
 
+
+
+
+
+1、   Bean作用域
+singleton Bean以单实例的方式存在
+prototype 每次调用新建一个bean
+requset 每次Http请求都会创建一个新的Bean
+session 同一个Http Session共享一个Bean
+globalsession 同一个全局Session共享一个Bean，一般用于Portlet应用环境
+2、   BeanFactory 它的职责包括：实例化、定位、配置应用程序中的对象及建立这些对象间的依赖
+FactoryBean 这个Bean不是简单的Bean，而是一个能生产或者修饰对象生成的工厂Bean
+
+
+spring内部工作机制
+spring容器在加载配置文件后的各项处理过程
+1.初始化BeanFactory；实例化beanFactory，将配置文件装入到容器的Bean定义注册表（BeanDefinitionRegistry）中，但此时Bean还未初始化
+2.调用工厂后处理器；根据反射机制从BeanDefinitionRegistry中找出所有BeanFactoryPostProcessor类型的Bean，并调用其postProcessBeanFactory方法
+3.注册Bean后处理器；并将它们注册到容器Bean后处理器的注册表中
+4.初始化消息源；初始化容器的国际化信息资源
+5.初始化应用上下文事件广播器
+6.初始化其他特殊的Bean
+7.注册事件监听器
+8.初始化所有单实例的Bean；初始化Bean后将他们放入Spring容器的缓存中
+9.完成刷新并发布容器刷新事件
+Spring容器从加载配置文件到创建出一个完整Bean的流程
+装载配置文件--》解析配置信息，配置文件中每一个Bean解析成BeanDefinition对象--》保存到加工前的注册表（BeanfinitionRegirst）--》对加工前的注册表（BeanfinitionRegirst）进行加工处理--》spring容器从注册表中取出加工后的BeanDefinition实例此Bean对象--》Bean的属性进行填充--》Bean实例准备完毕
+自定义属性编辑器extends PropertyEditorSupport
+
+
+容器事件
+ApplicationEvent它有两个子类
+ApplicationContextEvent容器事件
+RequestHandleEvent这是一个与web应用相关的事件，当一个http请求被处理后，产生该事件。只有在web.xml中定义了DispatcherServlet时才会产生该事件
+事件监听器接口
+Spring的事件监听器都扩展于ApplicationListenter接口
